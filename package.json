@@ -12,6 +12,8 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.1",
     "@tailwindcss/vite": "^4.0.6",
+    "aframe": "^1.6.0",
+    "aframe-react": "^4.4.0",
     "axios": "^1.7.9",
     "firebase": "^11.3.0",
     "lucide-react": "^0.475.0",

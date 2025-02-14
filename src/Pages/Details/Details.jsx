@@ -235,11 +235,12 @@
 // export default PropertyDetails;
 
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { addToWishlist, removeFromWishlist } from "../../Redux/wishlistSlice";
 import { FaStar } from "react-icons/fa";
+import { FaVideo } from "react-icons/fa"; // إضافة أيقونة الفيديو
 
 const PropertyDetails = () => {
   const { id } = useParams();
@@ -251,6 +252,8 @@ const PropertyDetails = () => {
   const [hover, setHover] = useState(null);
   const [reviewText, setReviewText] = useState("");
   const [username, setUsername] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false); // حالة لفتح أو غلق النافذة المنبثقة
 
   const { user } = useSelector((state) => state.auth);
   const wishlist = useSelector((state) => state.wishlist.wishlist);
@@ -269,6 +272,7 @@ const PropertyDetails = () => {
         if (response.data) {
           setProperty(response.data);
           setMainImage(response.data.images ? response.data.images[0] : "");
+          setVideoUrl(response.data.video360 || ""); // جلب رابط الفيديو 360°
         } else {
           setProperty(null);
         }
@@ -322,7 +326,14 @@ const PropertyDetails = () => {
       navigate("/Register");
       return;
     }
-    console.log("Booking property:", property.id);
+
+    if (!id) {
+      // تحقق من وجود الـ id في الرابط
+      console.error("Property ID is missing!");
+      return;
+    }
+
+    navigate(`/booking/${id}`);
   };
 
   const handleAddReview = async () => {
@@ -331,11 +342,11 @@ const PropertyDetails = () => {
       return;
     }
 
-    const hasBooked = await checkIfUserBookedProperty(user.uid, id);
-    if (!hasBooked) {
-      alert("يجب عليك حجز المزرعة أولاً قبل التقييم.");
-      return;
-    }
+    // const hasBooked = await checkIfUserBookedProperty(user.uid, id);
+    // if (!hasBooked) {
+    //   alert("يجب عليك حجز المزرعة أولاً قبل التقييم.");
+    //   return;
+    // }
 
     const newReview = {
       username,
@@ -357,6 +368,16 @@ const PropertyDetails = () => {
     }
   };
 
+  // فتح النافذة المنبثقة
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // غلق النافذة المنبثقة
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   if (!property) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -370,15 +391,6 @@ const PropertyDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Property Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">{property.name}</h1>
-          <div className="flex items-center text-gray-600">
-            <span className="text-2xl mr-2">📍</span>
-            <span className="text-xl">{property.location}</span>
-          </div>
-        </div>
-
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -402,20 +414,50 @@ const PropertyDetails = () => {
                     src={image}
                     alt={`property-${index}`}
                     className={`h-24 w-full object-cover rounded-lg cursor-pointer transition-all duration-200 
-                      ${mainImage === image ? 'ring-4 ring-blue-500' : 'hover:ring-2 ring-blue-300'}`}
+                      ${
+                        mainImage === image
+                          ? "ring-4 ring-green-500"
+                          : "hover:ring-2 ring-green-300"
+                      }`}
                     onClick={() => setMainImage(image)}
                   />
                 ))}
               </div>
             )}
-
+            {/* إضافة أيقونة الفيديو */}
+            {videoUrl && (
+              <div className="mt-4">
+                <button
+                  onClick={openModal}
+                  className="flex items-center space-x-2 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                >
+                  <FaVideo size={20} />
+                  <span className="text-sm">Watch Video</span>
+                </button>
+              </div>
+            )}
+            {/* Property Header */}
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                {property.name}
+              </h1>
+              <div className="flex items-center text-gray-600">
+                <span className="text-2xl mr-2">📍</span>
+                <span className="text-xl">{property.location}</span>
+              </div>
+            </div>
             {/* Description */}
             <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-2xl font-semibold mb-4">About this property</h2>
-              <p className="text-gray-700 leading-relaxed">{property.long_description}</p>
+              <h2 className="text-2xl font-semibold mb-4">
+                About this property
+              </h2>
+              <p className="text-gray-700 leading-relaxed">
+                {property.long_description}
+              </p>
               <div className="mt-6 bg-blue-50 p-4 rounded-lg">
                 <p className="text-xl font-semibold text-blue-900">
-                  Price: <span className="text-blue-600">{property.price_12_hours}</span> per 12 hours
+                  Price: <span className="text-blue-600">{property.price}</span>{" "}
+                  JD per 12 hours
                 </p>
               </div>
             </div>
@@ -425,28 +467,20 @@ const PropertyDetails = () => {
           <div className="space-y-6">
             {/* Action Buttons */}
             <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
-              <Link to={`/booking/${property.id}`} className="block">
-                <button 
-                  onClick={() => {
-                    if (user) {
-                      handleBookNow();
-                      handlePropertyClick(property.id);
-                    } else {
-                      alert("من فضلك سجل الدخول للحجز.");
-                    }
-                  }}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-lg font-semibold 
-                    hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
-                >
-                  {user ? "Book Now 📅" : "سجل الدخول للحجز"}
-                </button>
-              </Link>
+              <button
+                onClick={handleBookNow}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-lg font-semibold 
+                 hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                {user ? "Book Now 📅" : "سجل الدخول للحجز"}
+              </button>
 
               <button
                 className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg
-                  ${isInWishlist 
-                    ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700" 
-                    : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300"
+                  ${
+                    isInWishlist
+                      ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700"
+                      : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300"
                   }`}
                 onClick={handleToggleWishlist}
               >
@@ -463,17 +497,25 @@ const PropertyDetails = () => {
               <h2 className="text-2xl font-semibold mb-6">Reviews</h2>
               <div className="space-y-4">
                 {reviews.length === 0 ? (
-                  <p className="text-gray-500 italic text-center py-4">No reviews yet</p>
+                  <p className="text-gray-500 italic text-center py-4">
+                    No reviews yet
+                  </p>
                 ) : (
                   reviews.map((review, index) => (
                     <div key={index} className="border-b last:border-0 pb-4">
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-semibold text-lg">{review.username}</h3>
+                        <h3 className="font-semibold text-lg">
+                          {review.username}
+                        </h3>
                         <div className="flex text-yellow-400">
                           {[...Array(5)].map((_, i) => (
                             <FaStar
                               key={i}
-                              className={i < review.rating ? "text-yellow-400" : "text-gray-200"}
+                              className={
+                                i < review.rating
+                                  ? "text-yellow-400"
+                                  : "text-gray-200"
+                              }
                             />
                           ))}
                         </div>
@@ -511,9 +553,10 @@ const PropertyDetails = () => {
                       <FaStar
                         key={index}
                         className={`w-8 h-8 cursor-pointer transition-colors duration-200 
-                          ${currentRating <= (hover || rating)
-                            ? "text-yellow-400"
-                            : "text-gray-200"
+                          ${
+                            currentRating <= (hover || rating)
+                              ? "text-yellow-400"
+                              : "text-gray-200"
                           }`}
                         onClick={() => setRating(currentRating)}
                         onMouseEnter={() => setHover(currentRating)}
@@ -536,6 +579,27 @@ const PropertyDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* نافذة الفيديو */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-8 rounded-lg max-w-3xl w-full">
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-2 text-white font-bold text-xl"
+            >
+              X
+            </button>
+            <iframe
+              src={videoUrl}
+              title="Property 360 Video"
+              className="w-full h-80"
+              frameBorder="0"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

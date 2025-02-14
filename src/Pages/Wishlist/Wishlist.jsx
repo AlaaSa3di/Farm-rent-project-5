@@ -88,98 +88,101 @@
 
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setLoading, setWishlist, removeFromWishlist } from "../../Redux/wishlistSlice";
-import axios from "axios";
+import { fetchWishlist, removeFromWishlist, addToWishlist } from "../../Redux/wishlistSlice";
 import { Link } from "react-router-dom";
-import { getAuth } from "firebase/auth";
-
-const FIREBASE_URL = "https://rent-app-d50fb-default-rtdb.firebaseio.com";
 
 const WishlistPage = () => {
   const dispatch = useDispatch();
   const { wishlist, loading } = useSelector((state) => state.wishlist);
-  const { user } = useSelector((state) => state.auth); // جلب المستخدم من الـ Redux store
   const [imageUrls, setImageUrls] = useState({});
 
-  // **الحصول على معرف المستخدم من Firebase Auth إذا لم يكن موجودًا في Redux**
+  // 🔹 جلب بيانات المفضلة عند تحميل الصفحة
   useEffect(() => {
-    if (!user) {
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        // إذا كان المستخدم موجودًا في Firebase Auth ولكنه ليس في الـ Redux
-        dispatch(setUser({ uid: currentUser.uid, email: currentUser.email }));
-      } else {
-        console.log("لم يتم العثور على مستخدم مسجل الدخول");
-      }
-    }
-  }, [user, dispatch]);
+    dispatch(fetchWishlist());
+  }, [dispatch]);
 
-  // 🔹 **جلب المفضلة عند تغيير userId**
+  // 🔹 تحديث الصور بعد جلب المفضلة
   useEffect(() => {
-    if (!user?.uid) return;
-
-    const fetchWishlist = async () => {
-      dispatch(setLoading(true));
-      try {
-        const response = await axios.get(`${FIREBASE_URL}/wishlist/${user.uid}.json`);
-        const data = response.data
-          ? Object.entries(response.data).map(([key, value]) => ({ id: key, ...value }))
-          : [];
-        dispatch(setWishlist(data));
-
-        // 🔹 **جلب الصور للمزارع**
-        const images = {};
-        for (const farm of data) {
-          if (farm.image) {
-            images[farm.id] = farm.image;
-          }
-        }
-        setImageUrls(images);
-      } catch (error) {
-        console.error("Error fetching wishlist:", error);
-      } finally {
-        dispatch(setLoading(false));
+    const images = {};
+    wishlist.forEach((farm) => {
+      if (farm.image) {
+        images[farm.id] = farm.image;
       }
-    };
+    });
+    setImageUrls(images);
+  }, [wishlist]);
 
-    fetchWishlist();
-  }, [dispatch, user?.uid]);
+  // 🔹 إضافة مزرعة إلى المفضلة
+  const handleAddToWishlist = (farm) => {
+    dispatch(addToWishlist(farm));
+  };
 
-  // 🔹 **إزالة مزرعة من المفضلة**
+  // 🔹 إزالة مزرعة من المفضلة
   const handleRemoveFromWishlist = (id) => {
-    if (!user?.uid) return;
     dispatch(removeFromWishlist(id));
   };
 
   return (
-    <div className="container mx-auto px-20 p-4">
-      <h1 className="text-4xl font-semibold text-center mb-4">Wishlist</h1>
-
-      {loading ? (
-        <p className="text-center text-lg">Reloading...</p>
-      ) : wishlist.length === 0 ? (
-        <p className="text-center text-lg">There are no farms in the favorites list.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {wishlist.map((farm) => (
-            <div key={farm.id} className="border rounded-lg p-4 shadow-md">
-              <h2 className="text-xl font-semibold">
-                <Link to={`/properties/${farm.id}`}>{farm.name}</Link>
-              </h2>
-              {imageUrls[farm.id] && (
-                <img src={imageUrls[farm.id]} alt={farm.name} className="w-full h-auto mt-2" />
-              )}
-              <button
-                className="mt-2 bg-red-500 text-white py-1 px-4 rounded"
-                onClick={() => handleRemoveFromWishlist(farm.id)}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900">My Favorite Farms</h1>
+          <p className="mt-2 text-lg text-gray-600">Manage your saved properties</p>
         </div>
-      )}
+
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <p className="text-lg text-gray-600">Loading your favorites...</p>
+          </div>
+        ) : wishlist.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="bg-white p-8 rounded-lg shadow-md text-center">
+              <p className="text-xl text-gray-600 mb-4">Your favorites list is empty</p>
+              <Link 
+                to="/property" 
+                className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition"
+              >
+                Browse Properties
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {wishlist.map((farm) => (
+              <div key={farm.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
+                {imageUrls[farm.id] && (
+                  <img 
+                    src={imageUrls[farm.id]} 
+                    alt={farm.name} 
+                    className="w-full h-48 object-cover hover:scale-105 transition-transform"
+                  />
+                )}
+                <div className="p-6">
+                  <Link to={`/properties/${farm.id}`} className="block hover:text-green-600">
+                    <h2 className="text-2xl font-semibold">{farm.name}</h2>
+                  </Link>
+                  <p className="text-gray-600 mb-4">{farm.shortDescription || "No description available."}</p>
+                  <div className="mb-6 space-y-2 text-gray-700">
+                    <p><strong>Rooms:</strong> {farm.rooms || "N/A"}</p>
+                    <p><strong>Price:</strong> ${farm.price || "N/A"}</p>
+                    <p><strong>Location:</strong> {farm.location || "Unknown"}</p>
+                    {farm.offers && <p><strong>Offers:</strong> {farm.offers}</p>}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Link to={`/properties/${farm.id}`} className="text-green-600 hover:text-green-700">View Details</Link>
+                    <button
+                      onClick={() => handleRemoveFromWishlist(farm.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -76,15 +76,22 @@ const Navbar = () => {
                 <FaUser
                   onClick={() => navigate("/profile")}
                 />{/* أيقونة المستخدم */}
-                <span>{user.firstname} {user.lastname}</span>
+                <span>{user.firstname} {user.lastname}</span>{/* عرض اسم المستخدم */}
                 </button>
+                <button
+            className="ml-3 text-[#508D4E] hover:text-[#1A5319] flex items-center duration-300 cursor-pointer"
+            onClick={() => navigate("/Landlords")}
+          >
+            Add Property  {/* أيقونة المفضلة */}
+          </button> 
+
                 {/* أيقونة الـ Wishlist */}
           <button
             className="ml-3 text-[#508D4E] hover:text-[#1A5319] flex items-center duration-300 cursor-pointer"
             onClick={() => navigate("/wishlist")}
           >
             <FaHeart className="text-xl" /> {/* أيقونة المفضلة */}
-          </button> {/* عرض اسم المستخدم */}
+          </button> 
                 <button
                   onClick={handleLogout}
                   className="ml-5 text-[#508D4E] hover:text-[#1A5319] flex items-center space-x-2 duration-300 cursor-pointer"

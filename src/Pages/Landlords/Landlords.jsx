@@ -53,6 +53,7 @@ const Landlords = () => {
     location: "",
     google_maps_link: { lng: 0, lat: 0 },
     short_description: "",
+    video360:"",
     long_description: "",
     rooms: 0,
     price: 0,
@@ -183,6 +184,7 @@ const Landlords = () => {
       google_maps_link: { lng: 0, lat: 0 },
       short_description: "",
       long_description: "",
+      video360:"",
       rooms: 0,
       price: 0,
       images: [],
@@ -508,6 +510,20 @@ const Landlords = () => {
                   className="w-full rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent p-3"
                 />
               </div>
+               {/* video360 */}
+              <input
+              type="text"
+                value={newProperty.video360}
+                onChange={(e) =>
+                  setNewProperty({
+                    ...newProperty,
+                    video360: e.target.value,
+                  })
+                }
+                placeholder="add your Video URL"
+                className="w-full rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent p-3"
+                rows="3"
+              />
 
               {/* Availability */}
               <div className="relative">
