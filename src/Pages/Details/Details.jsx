@@ -472,7 +472,7 @@ const PropertyDetails = () => {
                 className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-lg font-semibold 
                  hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                {user ? "Book Now 📅" : "سجل الدخول للحجز"}
+                {user ? "Book Now 📅" : "Register now to book with us"}
               </button>
 
               <button
@@ -486,9 +486,9 @@ const PropertyDetails = () => {
               >
                 {user
                   ? isInWishlist
-                    ? "Remove from Favorites ❌"
+                    ? "Remove from Favorites"
                     : "Add to Favorites ❤️"
-                  : "سجل الدخول للإضافة إلى المفضلة"}
+                  : "Sign-In to save farm"}
               </button>
             </div>
 

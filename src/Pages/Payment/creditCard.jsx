@@ -7,34 +7,44 @@ const CreditCard = () => {
   const formData = useSelector((state) => state.creditCard);
   const dispatch = useDispatch();
 
-  // جلب بيانات الحجز من Firebase عند تحميل الصفحة
   useEffect(() => {
     const fetchBookingData = async () => {
-      dispatch(setLoading(true));
       try {
-        const response = await axios.get(
-          'https://rent-app-d50fb-default-rtdb.firebaseio.com//booking.json'
-        );
-
-        const bookingData = response.data;
-
-        if (bookingData) {
-          dispatch(updateField({ name: 'farmName', value: bookingData.name || '' }));
-          dispatch(updateField({ name: 'bookingDate', value: bookingData.bookingDate || '' }));
-          dispatch(updateField({ name: 'bookingTime', value: bookingData.bookingTime || '' }));
-        }
+        dispatch(setLoading(true));
         
+        const response = await axios.get('https://rent-app-d50fb-default-rtdb.firebaseio.com/bookings.json');
+  
+        if (!response.data) {
+          dispatch(setError('No bookings found.'));
+          dispatch(setLoading(false));
+          return;
+        }
+  
+        // جلب آخر حجز بناءً على مفاتيح الكائن (أحدث مفتاح)
+        const bookingKeys = Object.keys(response.data);
+        const latestBookingKey = bookingKeys[bookingKeys.length - 1];
+        const latestBooking = response.data[latestBookingKey];
+  
+        console.log("Latest Booking Data:", latestBooking);
+  
+        if (latestBooking) {
+          dispatch(updateField({ name: 'farmName', value: latestBooking.farmDetails?.name || '' }));
+          dispatch(updateField({ name: 'bookingDate', value: latestBooking.bookingDate || '' }));
+          dispatch(updateField({ name: 'bookingTime', value: latestBooking.bookingTime || '' }));
+          dispatch(updateField({ name: 'price', value: latestBooking.farmDetails?.price || '' }));
+        }
+  
         dispatch(setLoading(false));
       } catch (error) {
         console.error('Error fetching booking data:', error);
-        dispatch(setError('Failed to load booking data.'));
+        dispatch(setError('Failed to fetch booking data.'));
         dispatch(setLoading(false));
       }
     };
-
+  
     fetchBookingData();
   }, [dispatch]);
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     let formattedValue = value;
@@ -132,6 +142,7 @@ const CreditCard = () => {
               value={formData.price}
               onChange={handleChange}
               placeholder="Price"
+              readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>

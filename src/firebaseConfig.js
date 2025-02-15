@@ -13,6 +13,8 @@ import {
   ref, 
   set, 
   get ,
+  update,
+  onValue,
   remove
 } from "firebase/database";
 // Your Firebase configuration
@@ -45,5 +47,7 @@ export {
   ref, 
   set, 
   get,
-  remove
+  remove,
+  update,
+  onValue
 };

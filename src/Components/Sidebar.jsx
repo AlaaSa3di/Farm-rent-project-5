@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 function Sidebar() {
   return (
-    <div className="bg-gray-800 text-white h-screen w-64 flex-shrink-0">
+    <div className="bg-gray-800 text-white  w-64 flex-shrink-0">
       <div className="p-4 font-bold text-xl border-b border-gray-600">
         Admin Panel
       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-
+import AOS from "aos";
+import "aos/dist/aos.css";
 const HeroSection = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   
@@ -36,6 +37,7 @@ const HeroSection = () => {
   }, [carouselItems.length]);
 
   return (
+    <div data-aos="fade-left">
     <div className="relative w-full">
       <div className="relative h-[500px] overflow-hidden">
         {carouselItems.map((item, index) => (
@@ -69,6 +71,7 @@ const HeroSection = () => {
       >
         →
       </button>
+    </div>
     </div>
   );
 };
