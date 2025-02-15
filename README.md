@@ -1,4 +1,4 @@
-# 🏡 Real Estate Rental Web App
+# 🏡 Rivana Rent Farm
 
 ## 🚀 Overview
 As junior developers, we collaboratively designed and developed this real estate rental web application. It enables users to explore and rent properties (apartments, houses, vacation homes, etc.), making the rental process more convenient and efficient for both renters and landlords. 
